@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive 家計簿 - ラグジュアリーアニメーションUI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+        :root {
+            /* 高級感あふれるグラデーションベース */
+            --bg-dark-mesh: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #2e1065, #020617);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            
+            /* 流れるようなラグジュアリーグラデーションカラー */
+            --gold-gradient: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #bf953f);
+            --primary-gradient: linear-gradient(135deg, #c084fc, #818cf8, #6366f1);
+            --income-gradient: linear-gradient(135deg, #34d399, #059669);
+            --flex-gradient: linear-gradient(135deg, #f472b6, #db2777);
+            
+            /* アクセント単色 */
+            --primary: #c084fc;
+            --gold: #fbbf24;
+            --income: #34d399;
+            --fixed: #94a3b8; 
+            --flex: #f472b6;
+            --danger: #ef4444;
+            
+            /* テキストカラー */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', 'Noto Sans JP', sans-serif; }
+        
+        /* 🌌 動き続けるオーロラ漆黒背景 */
+        body { 
+            background: var(--bg-dark-mesh); 
+            background-size: 400% 400%;
+            animation: auroraBackground 25s ease infinite;
+            background-attachment: fixed; 
+            color: var(--text-main); 
+            padding-bottom: 120px; 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        @keyframes auroraBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 📱 フローティング・ボトムナビゲーション */
+        .app-nav {
+            display: flex; justify-content: space-around; align-items: center;
+            background: rgba(10, 15, 30, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border); border-radius: 40px;
+            padding: 12px 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 420px; z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-item {
+            background: none; border: none; color: var(--text-muted); font-size: 0.75rem; font-weight: 800;
+            display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; 
+            padding: 10px 16px; border-radius: 25px; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-item i { font-size: 1.4rem; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .nav-item:hover { color: var(--text-main); }
+        .nav-item.active { color: #000; background: var(--gold-gradient); background-size: 200% auto; animation: goldShine 4s linear infinite; box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3); }
+        .nav-item.active i { transform: scale(1.15) translateY(-2px); }
+
+        /* 👑 洗練されたページ切り替えアニメーション */
+        .app-page { display: none; padding: 25px; max-width: 1250px; margin: 0 auto; opacity: 0; transform: translateY(20px) scale(0.98); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .app-page.active { display: block; opacity: 1; transform: translateY(0) scale(1); }
+
+        /* グラスパネル共通（ホバーで美しく浮遊） */
+        .panel { 
+            background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); border-radius: 28px; padding: 28px; 
+            box-shadow: var(--glass-shadow); margin-bottom: 28px; 
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .panel:hover { 
+            transform: translateY(-4px); 
+            border-color: rgba(255,255,255,0.15); 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+        }
+        h2 { font-size: 1.15rem; margin-bottom: 18px; display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: 0.5px; }
+
+        /* 👑 流動ゴールド VIP総資産ボード（ブラックカード風） */
+        .asset-card {
+            background: linear-gradient(135deg, #1e1e24 0%, #0a0a0c 100%);
+            border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 24px; padding: 30px; margin-bottom: 28px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.15);
+            position: relative; overflow: hidden; display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .asset-card:hover {
+            transform: scale(1.01) translateY(-3px);
+            border-color: rgba(251, 191, 36, 0.5);
+            box-shadow: 0 35px 70px rgba(0,0,0,0.7), 0 0 20px rgba(251, 191, 36, 0.1);
+        }
+        .asset-label { font-size: 0.85rem; color: #a3a3a3; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        
+        /* テキスト自体に輝きが流れるアニメーション */
+        .asset-val { 
+            font-size: 2.8rem; font-weight: 900; margin-top: 8px; 
+            background: var(--gold-gradient);
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            animation: goldShine 4s linear infinite;
+        }
+        @keyframes goldShine {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* カレンダーレイアウト */
+        .calendar-container { display: grid; grid-template-columns: 1fr 380px; gap: 28px; }
+        @media (max-width: 980px) { .calendar-container { grid-template-columns: 1fr; } }
+
+        /* 💡 提案＆AI執事 */
+        .suggest-card { background: linear-gradient(135deg, rgba(192, 132, 252, 0.12), rgba(0,0,0,0)); border: 1px solid rgba(192, 132, 252, 0.25); text-align: center; }
+        .suggest-price { font-size: 2.5rem; font-weight: 900; margin: 12px 0; color: var(--text-main); animation: pulseGlow 3s ease-in-out infinite; }
+        @keyframes pulseGlow {
+            0%, 100% { text-shadow: 0 0 10px rgba(255,255,255,0); }
+            50% { text-shadow: 0 0 15px rgba(255,255,255,0.3); }
+        }
+        .ai-box { background: rgba(0, 0, 0, 0.4); padding: 18px; border-radius: 20px; margin-top: 22px; text-align: left; font-size: 0.88rem; line-height: 1.6; display: flex; gap: 14px; align-items: flex-start; border-left: 4px solid var(--primary); box-shadow: inset 5px 0 15px rgba(0,0,0,0.3); }
+
+        /* サマリーと高級プログレスバー */
+        .summary-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+        .sum-item { background: rgba(0,0,0,0.25); padding: 18px 10px; border-radius: 18px; text-align: center; font-size: 0.85rem; border: 1px solid var(--glass-border); font-weight: 700; transition: transform 0.3s; }
+        .sum-item:hover { transform: scale(1.04); }
+        .sum-val { font-weight: 800; font-size: 1.15rem; margin-top: 8px; font-family: 'Montserrat'; }
+
+        .progress-container { margin-top: 18px; background: rgba(255,255,255,0.04); height: 10px; border-radius: 5px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+        .progress-bar { background: linear-gradient(90deg, #c084fc, #f472b6, #6366f1); background-size: 200% auto; animation: goldShine 3s linear infinite; height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 0 15px var(--primary); }
+        
+        .cat-list { margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
+        .cat-row { display: flex; justify-content: space-between; font-size: 0.95rem; font-weight: 600; padding: 10px 0; border-bottom: 1px solid var(--glass-border); color: var(--text-main); transition: padding-left 0.3s; }
+        .cat-row:hover { padding-left: 6px; border-bottom-color: rgba(255,255,255,0.15); }
+
+        /* 🗓️ アニメーションカレンダーUI */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+        .month-nav-btn { background: rgba(255,255,255,0.03); color: var(--text-main); border: 1px solid var(--glass-border); padding: 10px 20px; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 0.88rem; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(6px); }
+        .month-nav-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); border-color: rgba(255,255,255,0.3); }
+        
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .weekday { text-align: center; font-weight: 800; font-size: 0.75rem; color: var(--text-muted); padding: 12px 0; letter-spacing: 1.5px; }
+        .weekday.sun { color: var(--flex); }
+        .weekday.sat { color: #38bdf8; }
+
+        .day-cell { background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: 18px; min-height: 125px; padding: 10px; display: flex; flex-direction: column; gap: 6px; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .day-cell:hover { background: rgba(255,255,255,0.06); transform: translateY(-3px) scale(1.02); border-color: rgba(255,255,255,0.2); box-shadow: 0 15px 30px rgba(0,0,0,0.4); z-index: 10; }
+        .day-cell.today { background: rgba(192, 132, 252, 0.08); border-color: var(--primary); box-shadow: 0 0 20px rgba(192, 132, 252, 0.25), inset 0 0 10px rgba(192, 132, 252, 0.1); }
+        .day-num { font-weight: 800; font-size: 0.95rem; color: var(--text-muted); display: inline-block; font-family: 'Montserrat'; transition: all 0.3s; }
+        .day-cell:hover .day-num { color: var(--text-main); }
+        .day-cell.today .day-num { background: var(--primary-gradient); color: white; padding: 3px 9px; border-radius: 9px; box-shadow: 0 4px 10px rgba(192,132,252,0.4); }
+        
+        .day-events { display: flex; flex-direction: column; gap: 5px; overflow-y: auto; max-height: 85px; }
+        .day-events::-webkit-scrollbar { display: none; }
+        
+        /* イベントタグ（美しいグラデーション） */
+        .event-tag { font-size: 0.72rem; padding: 5px 8px; border-radius: 8px; color: white; font-weight: 800; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); font-family: 'Montserrat'; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); animation: popIn 0.4s ease; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .event-tag:hover { transform: scale(1.06); box-shadow: 0 5px 12px rgba(0,0,0,0.3); filter: brightness(1.2); }
+        .tag-fixed-in { background: var(--income-gradient); border-color: rgba(52, 211, 153, 0.3); }
+        .tag-fixed-out { background: linear-gradient(135deg, #64748b, #475569); border-color: rgba(148, 163, 184, 0.3); }
+        .tag-flex { background: var(--flex-gradient); border-color: rgba(244, 114, 182, 0.3); }
+        .day-photo-preview { width: 100%; height: 38px; object-fit: cover; border-radius: 8px; margin-top: 4px; opacity: 0.85; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+        .day-cell:hover .day-photo-preview { opacity: 1; transform: scale(1.03); }
+
+        /* フォーム・ラグジュアリー入力コントロール */
+        .form-wrapper { max-width: 620px; margin: 0 auto; }
+        .entry-tabs { display: flex; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 6px; margin-bottom: 28px; border: 1px solid var(--glass-border); }
+        .tab-btn { flex: 1; padding: 16px; border: none; background: none; border-radius: 15px; cursor: pointer; font-size: 0.95rem; font-weight: 800; color: var(--text-muted); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .tab-btn.active { background: rgba(255,255,255,0.06); color: var(--text-main); box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
+        .tab-btn.active.flex-tab { color: var(--flex); text-shadow: 0 0 10px rgba(244,114,182,0.2); }
+        
+        label { font-size: 0.88rem; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 10px; letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 18px; border: 1px solid var(--glass-border); border-radius: 16px; background: rgba(0,0,0,0.3); color: var(--text-main); font-size: 1.05rem; font-weight: 600; margin-bottom: 24px; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        input:focus, select:focus { outline: none; border-color: var(--primary); background: rgba(0,0,0,0.5); box-shadow: 0 0 20px rgba(192, 132, 252, 0.25); transform: translateY(-1px); }
+        
+        .camera-upload-zone { display: flex; align-items: center; justify-content: center; gap: 12px; background: rgba(0,0,0,0.2); border: 2px dashed var(--glass-border); padding: 24px; border-radius: 16px; cursor: pointer; color: var(--text-muted); font-weight: 800; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .camera-upload-zone:hover { border-color: var(--primary); color: var(--primary); background: rgba(192, 132, 252, 0.04); transform: scale(1.01); }
+        #photo-preview-form { display: none; width: 100%; max-height: 220px; object-fit: contain; margin-top: 18px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        
+        /* 動くグラデーションメインボタン */
+        .btn-main { 
+            width: 100%; padding: 20px; border: none; border-radius: 16px; 
+            background: linear-gradient(135deg, #a855f7, #6366f1, #d946ef, #a855f7); 
+            background-size: 300% auto;
+            color: white; font-weight: 900; cursor: pointer; font-size: 1.15rem; letter-spacing: 1.5px; 
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35); 
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: goldShine 6s linear infinite;
+        }
+        .btn-main:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 15px 35px rgba(99, 102, 241, 0.5); filter: brightness(1.1); }
+        .btn-main:active { transform: translateY(-1px); }
+
+        /* 🎮 エンタメ割り勘専用スタイル */
+        .game-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; background: rgba(0,0,0,0.3); padding: 6px; border-radius: 18px; border: 1px solid var(--glass-border); }
+        .game-tab-btn { border: none; background: none; padding: 14px 5px; font-size: 0.9rem; font-weight: 800; border-radius: 14px; cursor: pointer; color: var(--text-muted); transition: all 0.3s; }
+        .game-tab-btn.active { background: rgba(255,255,255,0.08); color: var(--gold); border: 1px solid rgba(251, 191, 36, 0.3); box-shadow: 0 5px 15px rgba(251, 191, 36, 0.15); }
+        .split-res-box { display: none; margin-top: 26px; padding: 26px; background: rgba(0,0,0,0.5); border-radius: 22px; border: 1px solid var(--glass-border); animation: pop 0.5s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: inset 0 0 20px rgba(0,0,0,0.4); }
+        .result-list-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-weight: 700; font-size: 1.05rem; animation: slideInRow 0.4s ease forwards; opacity: 0; }
+        @keyframes pop { 0% { transform: scale(0.93) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes slideInRow { to { opacity: 1; transform: translateX(0); } from { opacity: 0; transform: translateX(-10px); } }
+    </style>
+</head>
+<body>
+
+<!-- 🗓️ 1. カレンダー画面 -->
+<div id="page-calendar" class="app-page active">
+    
+    <!-- 👑 VIP総資産ボード -->
+    <div class="asset-card">
+        <div style="position: relative; z-index: 1;">
+            <p class="asset-label"><i class="fa-solid fa-crown" style="color: var(--gold); margin-right: 6px; animation: pulseGlow 2s infinite;"></i> エグゼクティブ総資産</p>
+            <h1 class="asset-val" id="total-asset-val">¥0</h1>
+        </div>
+        <i class="fa-solid fa-gem" style="font-size: 4.5rem; color: rgba(255,255,255,0.02); position: absolute; right: -5px; top: -5px; animation: spinGlow 20s linear infinite;"></i>
+    </div>
+
+    <div class="calendar-container">
+        <!-- カレンダー本体 -->
+        <div class="panel">
+            <div class="calendar-header">
+                <div style="display: flex; align-items: center; gap: 18px;">
+                    <button class="month-nav-btn" onclick="changeMonth(-1)"><i class="fa-solid fa-angle-left"></i></button>
+                    <h2 style="margin-bottom: 0; font-size: 1.4rem; font-family: 'Montserrat'; font-weight:900;" id="calendar-month-title">2026 / 07</h2>
+                    <button class="month-nav-btn" onclick="changeMonth(1)"><i class="fa-solid fa-angle-right"></i></button>
+                </div>
+                
+                <button class="month-nav-btn" style="color: var(--gold); border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.03);" onclick="autoInjectFixedCosts()">
+                    <i class="fa-solid fa-bolt" style="animation: pulseGlow 1.5s infinite;"></i> 固定費自動セット
+                </button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+        </div>
+
+        <!-- サイドパネル -->
+        <div class="sidebar">
+            <div class="panel suggest-card">
+                <p style="font-size: 0.9rem; font-weight: 800; opacity: 0.8; letter-spacing: 1.5px;">本日の推奨利用額</p>
+                <div class="suggest-price" id="suggest-amt">¥0</div>
+                <p style="opacity: 0.6; font-size: 0.78rem; font-weight:500;" id="suggest-desc">(今月の残金 ÷ 残り日数)</p>
+                
+                <!-- 🤖 AI執事 -->
+                <div class="ai-box">
+                    <i class="fa-solid fa-user-tie" style="font-size: 1.5rem; color: var(--primary); animation: pulseGlow 3s infinite;"></i>
+                    <div>
+                        <strong style="color: var(--primary); display: block; margin-bottom: 6px; font-size: 0.85rem; letter-spacing: 1px; font-weight:900;">専属AIコンシェルジュ</strong>
+                        <span id="ai-advisor-text" style="color: #cbd5e1; font-weight:500;">主人、お帰りなさいませ。データが入力され次第、資産運用の助言を開始いたします。</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="margin-bottom:0; font-size: 1.05rem;"><i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> 予算利用状況</h2>
+                    <span id="budget-percent" style="font-size:1rem; font-weight:900; color:var(--primary); font-family: 'Montserrat';">0%</span>
+                </div>
+                <div class="progress-container"><div class="progress-bar" id="budget-progress"></div></div>
+                <h2 style="margin-top: 28px; margin-bottom: 6px; font-size: 1.05rem;"><i class="fa-solid fa-tags" style="color:var(--flex);"></i> カテゴリ別支出</h2>
+                <div class="cat-list" id="category-summary-list"></div>
+            </div>
+
+            <div class="panel">
+                <h2 style="font-size: 1.05rem;"><i class="fa-solid fa-file-invoice-dollar" style="color:var(--gold);"></i> 今月のサマリー</h2>
+                <div class="summary-box">
+                    <div class="sum-item"><div>収入</div><div class="sum-val" id="sum-income" style="color: var(--income);">¥0</div></div>
+                    <div class="sum-item"><div>支出</div><div class="sum-val" id="sum-expense" style="color: var(--flex);">¥0</div></div>
+                    <div class="sum-item" style="border-color: rgba(192,132,252,0.3); background: rgba(192,132,252,0.04);"><div>貯蓄</div><div class="sum-val" id="sum-savings" style="color: var(--primary);">¥0</div></div>
+                </div>
+                <button onclick="clearAllData()" style="width:100%; border:none; background:none; color:var(--danger); font-size:0.8rem; font-weight:bold; margin-top:24px; cursor:pointer; opacity: 0.5; transition: 0.3s;">全データ初期化</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✍️ 2. 入力画面 -->
+<div id="page-add" class="app-page">
+    <div class="form-wrapper">
+        <div class="panel">
+            <h2 style="font-size: 1.4rem;"><i class="fa-solid fa-plus-circle" style="color: var(--primary);"></i> 新規データ登録</h2>
+            <div class="entry-tabs">
+                <button class="tab-btn active flex-tab" onclick="setMode('flex', this)">変動費</button>
+                <button class="tab-btn income-tab" onclick="setMode('fixed-in', this)">収入</button>
+                <button class="tab-btn fixed-tab" onclick="setMode('fixed-out', this)">固定費</button>
+            </div>
+            
+            <form id="main-form">
+                <div><label>日付</label><input type="date" id="form-date" required></div>
+                <div>
+                    <label>レシート・画像 (任意)</label>
+                    <div class="camera-upload-zone" onclick="document.getElementById('form-file').click()"><i class="fa-solid fa-camera-retro" style="font-size: 1.6rem;"></i><span>タップしてアップロード</span></div>
+                    <input type="file" id="form-file" accept="image/*" capture="environment" style="display: none;" onchange="previewImage(this)">
+                    <img id="photo-preview-form" src="" alt="プレビュー">
+                </div>
+                <div id="category-selector-wrapper" style="margin-top: 24px;">
+                    <label>カテゴリー</label>
+                    <select id="form-category">
+                        <option value="食費・交際">🍽️ 食費・交際</option>
+                        <option value="エンタメ・趣味">🥂 エンタメ・趣味</option>
+                        <option value="ショッピング">🛍️ ショッピング・衣服</option>
+                        <option value="交通費">🚕 交通費</option>
+                        <option value="その他">📦 その他</option>
+                    </select>
+                </div>
+                <div><label id="label-title">メモ・詳細</label><input type="text" id="form-title" placeholder="例: プレミアムディナー" required></div>
+                <div><label>金額 (¥)</label><input type="number" id="form-amount" placeholder="0" min="0" required></div>
+                <button type="submit" class="btn-main" id="btn-submit">帳簿に記録する</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 👥 3. 🎮 エンタメ超割り勘画面 -->
+<div id="page-split" class="app-page">
+    <div class="form-wrapper">
+        <div class="panel" style="border: 1px solid rgba(251,191,36,0.3); background: linear-gradient(180deg, rgba(251,191,36,0.03) 0%, rgba(0,0,0,0) 100%);">
+            <h2 style="color: var(--gold); font-size: 1.4rem;"><i class="fa-solid fa-champagne-glasses" style="animation: pulseGlow 2s infinite;"></i> VIP 精算ルーム</h2>
+            <div class="game-tabs">
+                <button class="game-tab-btn active" id="g-tab-normal" onclick="setGameMode('normal')">⚖️ 通常割り勘</button>
+                <button class="game-tab-btn" id="g-tab-gochi" onclick="setGameMode('gochi')">👑 ゴチ（全額）</button>
+                <button class="game-tab-btn" id="g-tab-roulette" onclick="setGameMode('roulette')">💥 ルーレット</button>
+            </div>
+            <div><label>合計金額 (¥)</label><input type="number" id="split-total" placeholder="0" min="0"></div>
+            <div>
+                <label>参加メンバー (カンマ区切り)</label>
+                <input type="text" id="split-members" value="自分, ゲスト1, ゲスト2">
+            </div>
+            <div id="normal-ratio-wrapper">
+                <label>自身の負担割合 (通常モード)</label>
+                <select id="split-ratio">
+                    <option value="1">対等 (1.0倍)</option>
+                    <option value="1.5">ホスト (1.5倍)</option>
+                    <option value="2">VIPホスト (2.0倍)</option>
+                    <option value="0.5">ゲスト (0.5倍)</option>
+                </select>
+            </div>
+            <div><label>イベント名</label><input type="text" id="split-title" value="ラウンジ会食"></div>
+            <button onclick="playSplitGame()" class="btn-main" style="background: var(--gold-gradient); background-size: 200% auto; color: #000; box-shadow: 0 10px 25px rgba(251,191,36,0.25);" id="btn-play-game">計算する</button>
+            
+            <div class="split-res-box" id="split-res-box">
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--gold);" id="res-game-title">📊 計算結果</h3>
+                <div id="game-result-list" style="margin-bottom: 22px;"></div>
+                <div id="my-share-log-zone" style="display: none;">
+                    <button onclick="addSplitToCalendar()" class="btn-main" style="background: var(--primary-gradient); padding: 16px; font-size: 1.05rem; box-shadow: 0 8px 20px rgba(192,132,252,0.3);">自分の負担分を帳簿に記録する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📱 フローティング・ナビゲーション -->
+<nav class="app-nav">
+    <button class="nav-item active" onclick="switchPage('calendar', this)"><i class="fa-solid fa-calendar-alt"></i><span>ホーム</span></button>
+    <button class="nav-item" onclick="switchPage('add', this)"><i class="fa-solid fa-plus"></i><span>入力</span></button>
+    <button class="nav-item" onclick="switchPage('split', this)"><i class="fa-solid fa-glass-cheers"></i><span>精算</span></button>
+</nav>
+
+<script>
+    // 2026年仕様マスタデータ
+    const defaultData = [
+        { id: 1, date: '2026-07-15', title: '役員報酬', amount: 950000, type: 'fixed-in', category: '収入', photo: null },
+        { id: 2, date: '2026-07-05', title: 'レジデンス家賃', amount: 420000, type: 'fixed-out', category: '固定費', photo: null },
+        { id: 3, date: '2026-07-02', title: 'ラウンジ会食', amount: 45000, type: 'flex', category: '食費・交際', photo: null }
+    ];
+
+    let budgetData = JSON.parse(localStorage.getItem('premium_budget_data')) || defaultData;
+    const sysYear = 2026; const sysMonth = 6; const sysDay = 8;
+    let displayYear = 2026; let displayMonth = 6;
+    const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const weekdayClasses = ['sun', '', '', '', '', '', 'sat'];
+    let currentMode = 'flex'; let currentBase64Image = null;
+    let activeGameMode = 'normal'; let myCalculatedAmount = 0; 
+
+    function init() { setFormDateToDisplayMonth(); renderCalendar(); calculateFinance(); }
+
+    function setFormDateToDisplayMonth() {
+        const d = (displayYear === sysYear && displayMonth === sysMonth) ? sysDay : 1;
+        document.getElementById('form-date').value = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+    function saveToLocalStorage() { localStorage.setItem('premium_budget_data', JSON.stringify(budgetData)); }
+
+    function switchPage(pageId, btn) {
+        const activePage = document.querySelector('.app-page.active');
+        if(activePage) {
+            activePage.style.opacity = 0;
+            activePage.style.transform = 'translateY(15px) scale(0.98)';
+            setTimeout(() => {
+                activePage.classList.remove('active');
+                const nextPage = document.getElementById(`page-${pageId}`);
+                nextPage.classList.add('active');
+                setTimeout(() => {
+                    nextPage.style.opacity = 1;
+                    nextPage.style.transform = 'translateY(0) scale(1)';
+                }, 40);
+            }, 200);
+        }
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        btn.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setMode(mode, btn) {
+        currentMode = mode;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const labelTitle = document.getElementById('label-title');
+        const catWrapper = document.getElementById('category-selector-wrapper');
+        
+        if (mode === 'flex') {
+            labelTitle.innerText = "メモ・詳細"; catWrapper.style.display = 'block';
+        } else {
+            labelTitle.innerText = mode === 'fixed-in' ? "収入の名称" : "固定費の名称";
+            catWrapper.style.display = 'none';
+        }
+    }
+
+    function changeMonth(offset) {
+        displayMonth += offset;
+        if (displayMonth > 11) { displayMonth = 0; displayYear++; }
+        if (displayMonth < 0) { displayMonth = 11; displayYear--; }
+        document.getElementById('calendar-month-title').innerText = `${displayYear} / ${String(displayMonth + 1).padStart(2, '0')}`;
+        setFormDateToDisplayMonth(); renderCalendar(); calculateFinance();
+    }
+
+    function deleteEvent(id, title) {
+        if (confirm(`取引「${title}」を削除しますか？`)) {
+            budgetData = budgetData.filter(e => e.id !== id); saveToLocalStorage(); renderCalendar(); calculateFinance();
+        }
+    }
+
+    function autoInjectFixedCosts() {
+        if(confirm(`${displayMonth + 1}月の基本固定費と収入を自動入力しますか？`)) {
+            const nextId = budgetData.length > 0 ? Math.max(...budgetData.map(item => item.id || 0)) + 1 : 1;
+            const d1 = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-05`;
+            const d2 = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-15`;
+            budgetData.push({ id: nextId, date: d1, title: 'レジデンス家賃', amount: 420000, type: 'fixed-out', category: '固定費', photo: null });
+            budgetData.push({ id: nextId + 1, date: d2, title: '役員報酬', amount: 950000, type: 'fixed-in', category: '収入', photo: null });
+            saveToLocalStorage(); renderCalendar(); calculateFinance();
+        }
+    }
+
+    function setGameMode(mode) {
+        activeGameMode = mode; document.querySelectorAll('.game-tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(`g-tab-${mode}`).classList.add('active');
+        const ratioWrapper = document.getElementById('normal-ratio-wrapper'); const btnPlay = document.getElementById('btn-play-game');
+        if (mode === 'normal') { ratioWrapper.style.display = 'block'; btnPlay.innerText = "計算する"; btnPlay.style.background = "var(--gold-gradient)"; btnPlay.style.color="#000"; }
+        else if (mode === 'gochi') { ratioWrapper.style.display = 'none'; btnPlay.innerText = "ゴチ対象者を決定 👑"; btnPlay.style.background = "linear-gradient(135deg, #ef4444, #991b1b)"; btnPlay.style.color="white"; }
+        else if (mode === 'roulette') { ratioWrapper.style.display = 'none'; btnPlay.innerText = "ルーレット開始 💥"; btnPlay.style.background = "linear-gradient(135deg, var(--primary), #4c1d95)"; btnPlay.style.color="white"; }
+        document.getElementById('split-res-box').style.display = 'none';
+    }
+
+    function playSplitGame() {
+        const total = parseInt(document.getElementById('split-total').value, 10); const membersStr = document.getElementById('split-members').value;
+        if (isNaN(total) || total <= 0 || !membersStr.trim()) return;
+        const members = membersStr.split(',').map(m => m.trim()).filter(m => m.length > 0); if (members.length === 0) return;
+        const resBox = document.getElementById('split-res-box'); const resTitle = document.getElementById('res-game-title'); const resList = document.getElementById('game-result-list');
+        resList.innerHTML = ''; myCalculatedAmount = 0;
+
+        if (activeGameMode === 'normal') {
+            resTitle.innerHTML = "⚖️ 通常割り勘 結果"; const myRatio = parseFloat(document.getElementById('split-ratio').value);
+            const totalShares = myRatio + (members.length - 1); const baseUnit = total / totalShares;
+            members.forEach((m, i) => {
+                let amt = m === '自分' ? Math.round(baseUnit * i === 0 ? baseUnit * myRatio : baseUnit) : Math.round(baseUnit);
+                if (m === '自分') amt = Math.round(baseUnit * myRatio);
+                if (m === '自分') myCalculatedAmount = amt; appendResultRow(resList, m, amt, m === '自分' ? 'あなた' : '', i);
+            });
+        } else if (activeGameMode === 'gochi') {
+            resTitle.innerHTML = "👑 本日のVIP（全額お支払い）";
+            const godIndex = Math.floor(Math.random() * members.length);
+            members.forEach((m, idx) => {
+                const isGod = idx === godIndex; const amt = isGod ? total : 0;
+                if (m === '自分' && isGod) myCalculatedAmount = total;
+                appendResultRow(resList, m, amt, isGod ? '👑 VIP' : ' 回避', idx);
+            });
+        } else if (activeGameMode === 'roulette') {
+            resTitle.innerHTML = "💥 ロシアンルーレット 結果"; if (members.length < 3) return alert('参加者は3名以上必要です。');
+            let shuffled = [...members].sort(() => Math.random() - 0.5); const boomMember = shuffled[0]; const luckyMember = shuffled[1];
+            const baseUnit = total / (members.length);
+            members.forEach((m, idx) => {
+                let amt = 0; let badge = '';
+                if (m === boomMember) { amt = Math.round(baseUnit * 2); badge = '💥 罰ゲーム x2'; }
+                else if (m === luckyMember) { amt = 0; badge = '🍀 無料'; }
+                else { amt = Math.round(baseUnit); badge = '⚖️ 通常'; }
+                if (m === '自分') myCalculatedAmount = amt; appendResultRow(resList, m, amt, badge, idx);
+            });
+        }
+        resBox.style.display = 'block'; document.getElementById('my-share-log-zone').style.display = members.includes('自分') ? 'block' : 'none';
+    }
+
+    function appendResultRow(container, name, amount, badge, idx) {
+        const div = document.createElement('div'); div.className = 'result-list-item';
+        div.style.animationDelay = `${idx * 0.08}s`;
+        div.innerHTML = `<span>${name} <small style="color:var(--text-muted); font-weight:normal; margin-left: 8px;">${badge}</small></span><span style="font-family:'Montserrat';">¥${amount.toLocaleString()}</span>`;
+        container.appendChild(div);
+    }
+
+    function addSplitToCalendar() {
+        if (myCalculatedAmount <= 0) return;
+        const dateStr = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${String(sysDay).padStart(2, '0')}`;
+        const title = document.getElementById('split-title').value || '精算分';
+        const newId = budgetData.length > 0 ? Math.max(...budgetData.map(item => item.id || 0)) + 1 : 1;
+        budgetData.push({ id: newId, date: dateStr, title: title, amount: myCalculatedAmount, type: 'flex', category: '食費・交際', photo: null });
+        saveToLocalStorage(); renderCalendar(); calculateFinance();
+        document.getElementById('split-total').value = ''; document.getElementById('split-res-box').style.display = 'none';
+        switchPage('calendar', document.querySelectorAll('.nav-item')[0]);
+    }
+
+    function previewImage(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader(); reader.onload = function(e) {
+                const imgElement = document.getElementById('photo-preview-form'); imgElement.src = e.target.result; imgElement.style.display = 'block'; currentBase64Image = e.target.result;
+            }; reader.readAsDataURL(file);
+        }
+    }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+        weekdays.forEach((day, index) => {
+            const dayHead = document.createElement('div'); dayHead.className = `weekday ${weekdayClasses[index]}`; dayHead.innerText = day; grid.appendChild(dayHead);
+        });
+        const firstDay = new Date(displayYear, displayMonth, 1).getDay(); const numDays = new Date(displayYear, displayMonth + 1, 0).getDate();
+        for (let i = 0; i < firstDay; i++) { const blank = document.createElement('div'); grid.appendChild(blank); }
+        for (let day = 1; day <= numDays; day++) {
+            const currentIdx = (firstDay + day - 1) % 7; const cell = document.createElement('div'); cell.className = `day-cell ${weekdayClasses[currentIdx]}`;
+            if(displayYear === sysYear && displayMonth === sysMonth && day === sysDay) { cell.classList.add('today'); }
+            const dayNum = document.createElement('div'); dayNum.className = 'day-num'; dayNum.innerText = day; cell.appendChild(dayNum);
+            const eventContainer = document.createElement('div'); eventContainer.className = 'day-events';
+            const dateStr = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayEvents = budgetData.filter(e => e.date === dateStr);
+            dayEvents.forEach(e => {
+                const tag = document.createElement('div'); tag.className = `event-tag tag-${e.type}`; const prefix = e.type === 'fixed-in' ? '+' : '-';
+                tag.innerText = `${prefix}${e.amount.toLocaleString()}`;
+                tag.onclick = (event) => { event.stopPropagation(); deleteEvent(e.id, e.title); };
+                eventContainer.appendChild(tag);
+                if(e.photo) { const img = document.createElement('img'); img.src = e.photo; img.className = 'day-photo-preview'; eventContainer.appendChild(img); }
+            });
+            cell.appendChild(eventContainer); grid.appendChild(cell);
+        }
+    }
+
+    function calculateFinance() {
+        let totalIncome = 0; let totalFixedExpense = 0; let totalFlexExpense = 0;
+        let catTotals = {};
+        
+        let absoluteAllTimeAsset = 0;
+        budgetData.forEach(item => {
+            if (item.type === 'fixed-in') absoluteAllTimeAsset += item.amount; else absoluteAllTimeAsset -= item.amount;
+            const itemDate = new Date(item.date);
+            if (itemDate.getFullYear() === displayYear && itemDate.getMonth() === displayMonth) {
+                if (item.type === 'fixed-in') totalIncome += item.amount;
+                else if (item.type === 'fixed-out') totalFixedExpense += item.amount;
+                else if (item.type === 'flex') {
+                    totalFlexExpense += item.amount;
+                    catTotals[item.category] = (catTotals[item.category] || 0) + item.amount;
+                }
+            }
+        });
+
+        document.getElementById('total-asset-val').innerText = `¥${absoluteAllTimeAsset.toLocaleString()}`;
+        const totalExpense = totalFixedExpense + totalFlexExpense; const savings = totalIncome - totalExpense;
+        document.getElementById('sum-income').innerText = `¥${totalIncome.toLocaleString()}`;
+        document.getElementById('sum-expense').innerText = `¥${totalExpense.toLocaleString()}`;
+        document.getElementById('sum-savings').innerText = `¥${savings.toLocaleString()}`;
+
+        const monthlyTargetBudget = 500000;
+        const percent = Math.min(Math.round((totalExpense / monthlyTargetBudget) * 100), 100);
+        document.getElementById('budget-percent').innerText = `${percent}%`;
+        
+        // プログレスバーにわずかに遅延を入れてリッチにする
+        setTimeout(() => {
+            document.getElementById('budget-progress').style.width = `${percent}%`;
+        }, 150);
+
+        // AI執事ロジック
+        const aiText = document.getElementById('ai-advisor-text');
+        if (totalExpense === 0) {
+            aiText.innerText = "主人、今月はまだ支出が記録されておりません。大変堅実で美しいキャッシュフローです。";
+        } else if (percent >= 90) {
+            aiText.innerText = "恐れ入りますが、予算使用率が臨界点(90%)を超過いたしました。至急、資産防衛モードへ移行することをお勧めいたします。";
+        } else if (percent >= 70) {
+            aiText.innerText = "支出のペースが少々加速している模様です。エグゼクティブたるもの、手綱の引き締めもまた一興かと存じます。";
+        } else if (savings > 200000) {
+            aiText.innerText = "実に見事な資産運用基盤です。この潤沢な余剰資金は、次なる投資ポートフォリオへの配置を推奨いたします。";
+        } else {
+            aiText.innerText = "現在のところ、キャッシュフローは極めて健全に推移しております。引き続き陰ながらフルサポートいたします。";
+        }
+
+        const remainingBudget = (totalIncome - totalFixedExpense) - totalFlexExpense;
+        const totalDaysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
+        let remainingDays = totalDaysInMonth;
+        if (displayYear === sysYear && displayMonth === sysMonth) {
+            remainingDays = totalDaysInMonth - sysDay + 1;
+            document.getElementById('suggest-desc').innerText = `(今月の残金 ÷ 残り ${remainingDays} 日)`;
+        } else {
+            document.getElementById('suggest-desc').innerText = `(1日あたりの利用可能額)`;
+        }
+        let suggestAmount = 0; if (remainingBudget > 0 && remainingDays > 0) suggestAmount = Math.floor(remainingBudget / remainingDays);
+        document.getElementById('suggest-amt').innerText = `¥${suggestAmount.toLocaleString()}`;
+
+        const catListContainer = document.getElementById('category-summary-list'); catListContainer.innerHTML = ''; let hasFlexExpense = false;
+        for (let cat in catTotals) {
+            hasFlexExpense = true; const row = document.createElement('div'); row.className = 'cat-row';
+            row.innerHTML = `<span>${cat}</span><strong style="font-weight: 800; font-family: 'Montserrat';">¥${catTotals[cat].toLocaleString()}</strong>`; catListContainer.appendChild(row);
+        }
+        if (!hasFlexExpense) catListContainer.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding: 10px 0;">まだ今月の変動費データがございません。</p>';
+    }
+
+    document.getElementById('main-form').addEventListener('submit', function(e) {
+        e.preventDefault(); const date = document.getElementById('form-date').value; const title = document.getElementById('form-title').value; const amount = parseInt(document.getElementById('form-amount').value, 10);
+        let category = document.getElementById('form-category').value; if (currentMode === 'fixed-in') category = '収入'; if (currentMode === 'fixed-out') category = '固定費';
+        const newId = budgetData.length > 0 ? Math.max(...budgetData.map(item => item.id || 0)) + 1 : 1;
+        budgetData.push({ id: newId, date, title, amount, type: currentMode, category: category, photo: currentBase64Image });
+        saveToLocalStorage(); renderCalendar(); calculateFinance();
+        document.getElementById('form-title').value = ''; document.getElementById('form-amount').value = ''; document.getElementById('form-file').value = '';
+        document.getElementById('photo-preview-form').style.display = 'none'; currentBase64Image = null;
+        switchPage('calendar', document.querySelectorAll('.nav-item')[0]);
+    });
+
+    function clearAllData() {
+        if(confirm('【警告】すべてのラグジュアリー取引データを消去し、初期状態に戻しますか？')) {
+            localStorage.removeItem('premium_budget_data'); budgetData = defaultData; renderCalendar(); calculateFinance();
+        }
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
