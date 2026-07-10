@@ -810,8 +810,6 @@ window.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('form-title').value = ''; document.getElementById('form-amount').value = ''; document.getElementById('form-file').value = '';
         document.getElementById('photo-preview-form').style.display = 'none'; currentBase64Image = null;
-        document.getElementById('upload-icon').className = 'fa-solid fa-camera';
-        document.getElementById('upload-text').innerText = 'タップしてレシートをスキャン（自動入力）';
         document.getElementById('upload-zone').style.borderColor = 'var(--panel-border)';
 
         switchPage('calendar', document.querySelectorAll('.nav-item')[0]);
