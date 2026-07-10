@@ -291,15 +291,7 @@
             
             <form id="main-form">
                 <div><label>日付</label><input type="date" id="form-date" required></div>
-                <div>
-                    <label>スマートスキャン（レシート読み取り）</label>
-                    <div class="camera-upload-zone" id="upload-zone" onclick="document.getElementById('form-file').click()">
-                        <i class="fa-solid fa-camera" id="upload-icon"></i>
-                        <span id="upload-text">タップしてレシートをスキャン（自動入力）</span>
-                    </div>
-                    <input type="file" id="form-file" accept="image/*" style="display: none;" onchange="previewAndOcrImage(this)">
-                    <img id="photo-preview-form" src="" alt="プレビュー">
-                </div>
+                
                 <div id="category-selector-wrapper" style="margin-top: 20px;">
                     <label>カテゴリー</label>
                     <select id="form-category">
@@ -620,41 +612,6 @@ window.addEventListener('DOMContentLoaded', () => {
         switchPage('calendar', document.querySelectorAll('.nav-item')[0]);
     }
 
-    function previewAndOcrImage(input) {
-        const file = input.files[0];
-        if (file) {
-            const uploadZone = document.getElementById('upload-zone');
-            const uploadText = document.getElementById('upload-text');
-            const uploadIcon = document.getElementById('upload-icon');
-            
-            uploadZone.style.borderColor = 'var(--gold-premium)';
-            uploadIcon.className = 'fa-solid fa-spinner fa-spin';
-            uploadText.innerText = 'インテリジェントAIがレシートを解析中...';
-            
-            const reader = new FileReader(); 
-            reader.onload = function(e) {
-                const imgElement = document.getElementById('photo-preview-form'); 
-                imgElement.src = e.target.result; 
-                currentBase64Image = e.target.result;
-                
-                setTimeout(() => {
-                    uploadIcon.className = 'fa-solid fa-check';
-                    uploadZone.style.borderColor = 'var(--income)';
-                    uploadText.innerHTML = '<span style="color:var(--income)">✨ レシートの解析が完了しました</span>';
-                    imgElement.style.display = 'block';
-                    const randomPick = mockReceipts[Math.floor(Math.random() * mockReceipts.length)];
-                    
-                    document.getElementById('form-title').value = randomPick.title;
-                    document.getElementById('form-amount').value = randomPick.amount;
-                    document.getElementById('form-category').value = randomPick.category;
-                    
-                    setMode('flex', document.querySelectorAll('.tab-btn')[0]);
-                }, 1500);
-            }; 
-            reader.readAsDataURL(file);
-        }
-    }
-
     function initChart() {
         const ctx = document.getElementById('expenseChart').getContext('2d');
         expenseChart = new Chart(ctx, {
@@ -810,6 +767,8 @@ window.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('form-title').value = ''; document.getElementById('form-amount').value = ''; document.getElementById('form-file').value = '';
         document.getElementById('photo-preview-form').style.display = 'none'; currentBase64Image = null;
+                //document.getElementById('upload-icon').className = 'fa-solid fa-camera';
+        //document.getElementById('upload-text').innerText = 'タップしてレシートをスキャン（自動入力）';
         document.getElementById('upload-zone').style.borderColor = 'var(--panel-border)';
 
         switchPage('calendar', document.querySelectorAll('.nav-item')[0]);
