@@ -171,7 +171,7 @@
         .game-tab-btn.active { background: rgba(255,255,255,0.08); color: var(--gold-premium); }
         .split-res-box { display: none; margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 16px; border: 1px solid var(--panel-border); }
         .result-list-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.95rem; }
- 　　　　/* アプリ管理・削除用の追加スタイル */
+        /* アプリ管理・削除用の追加スタイル */
         .launcher-btn { position: relative; }
         .delete-app-btn { position: absolute; top: -5px; right: -5px; background: var(--flex); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: none; }
         .managing .delete-app-btn { display: flex; align-items: center; justify-content: center; }   
@@ -642,13 +642,6 @@ window.addEventListener('DOMContentLoaded', () => {
                     uploadZone.style.borderColor = 'var(--income)';
                     uploadText.innerHTML = '<span style="color:var(--income)">✨ レシートの解析が完了しました</span>';
                     imgElement.style.display = 'block';
-                    
-                    const mockReceipts = [
-                        { title: '成城石井 六本木ヒルズ店', amount: 5840, category: '食費・交際' },
-                        { title: '東京ミッドタウン 駐車場', amount: 2200, category: '交通費' },
-                        { title: 'リッツカールトン カフェラウンジ', amount: 14500, category: '食費・交際' },
-                        { title: 'バーニーズニューヨーク 新宿店', amount: 32000, category: 'ショッピング' }
-                    ];
                     const randomPick = mockReceipts[Math.floor(Math.random() * mockReceipts.length)];
                     
                     document.getElementById('form-title').value = randomPick.title;
