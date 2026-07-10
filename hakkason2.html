@@ -370,10 +370,7 @@
 <script>
     // 2026年仕様マスタデータ
     const defaultData = [
-        { id: 1, date: '2026-07-15', title: '役員報酬', amount: 950000, type: 'fixed-in', category: '収入', photo: null },
-        { id: 2, date: '2026-07-05', title: 'レジデンス家賃', amount: 420000, type: 'fixed-out', category: '固定費', photo: null },
-        { id: 3, date: '2026-07-02', title: 'ラウンジ会食', amount: 45000, type: 'flex', category: '食費・交際', photo: null }
-    ];
+]
 
     let budgetData = JSON.parse(localStorage.getItem('premium_budget_data')) || defaultData;
     const sysYear = 2026; const sysMonth = 6; const sysDay = 8;
@@ -586,11 +583,11 @@
         // AI執事ロジック
         const aiText = document.getElementById('ai-advisor-text');
         if (totalExpense === 0) {
-            aiText.innerText = "主人、今月はまだ支出が記録されておりません。大変堅実で美しいキャッシュフローです。";
+            aiText.innerText = "今月はまだ支出が記録されておりません。記載はできていますか？";
         } else if (percent >= 90) {
-            aiText.innerText = "恐れ入りますが、予算使用率が臨界点(90%)を超過いたしました。至急、資産防衛モードへ移行することをお勧めいたします。";
+            aiText.innerText = "恐れ入りますが、予算使用率が臨界点(90%)を超過いたしました。至急、出費を抑えることをお勧めいたします。";
         } else if (percent >= 70) {
-            aiText.innerText = "支出のペースが少々加速している模様です。エグゼクティブたるもの、手綱の引き締めもまた一興かと存じます。";
+            aiText.innerText = "支出のペースが少々加速している模様です。";
         } else if (savings > 200000) {
             aiText.innerText = "実に見事な資産運用基盤です。この潤沢な余剰資金は、次なる投資ポートフォリオへの配置を推奨いたします。";
         } else {
