@@ -766,14 +766,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const eventContainer = document.createElement('div'); eventContainer.className = 'day-events';
             const dateStr = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayEvents = budgetData.filter(e => e.date === dateStr);
-            dayEvents.forEach(e => {
-                const tag = document.createElement('div'); tag.className = `event-tag tag-${e.type}`; const prefix = e.type === 'fixed-in' ? '+' : '-';
-                tag.innerText = `${prefix}${Math.round(e.amount/1000)}k`; 
-                tag.title = `${e.title}: ¥${e.amount.toLocaleString()}`;
-                tag.onclick = (event) => { event.stopPropagation(); deleteEvent(e.id, e.title); };
-                eventContainer.appendChild(tag);
-                if(e.photo) { const img = document.createElement('img'); img.src = e.photo; img.className = 'day-photo-preview'; eventContainer.appendChild(img); }
-            });
+            
             cell.appendChild(eventContainer); grid.appendChild(cell);
         }
     }
