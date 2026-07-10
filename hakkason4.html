@@ -751,24 +751,89 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderCalendar() {
-        const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
-        weekdays.forEach((day, index) => {
-            const dayHead = document.createElement('div'); dayHead.className = `weekday ${weekdayClasses[index]}`; dayHead.innerText = day; grid.appendChild(dayHead);
-        });
-        const firstDay = new Date(displayYear, displayMonth, 1).getDay(); const numDays = new Date(displayYear, displayMonth + 1, 0).getDate();
-        for (let i = 0; i < firstDay; i++) { const blank = document.createElement('div'); grid.appendChild(blank); }
-        for (let day = 1; day <= numDays; day++) {
-            const currentIdx = (firstDay + day - 1) % 7; const cell = document.createElement('div'); cell.className = `day-cell ${weekdayClasses[currentIdx]}`;
-            if(displayYear === sysYear && displayMonth === sysMonth && day === sysDay) { cell.classList.add('today'); }
-            const dayNum = document.createElement('div'); dayNum.className = 'day-num'; dayNum.innerText = day; cell.appendChild(dayNum);
-            const eventContainer = document.createElement('div'); eventContainer.className = 'day-events';
-            const dateStr = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dayEvents = budgetData.filter(e => e.date === dateStr);
-            
-            cell.appendChild(eventContainer); grid.appendChild(cell);
-        }
+    const grid = document.getElementById('calendar-grid');
+    grid.innerHTML = '';
+
+    weekdays.forEach((day, index) => {
+        const dayHead = document.createElement('div');
+        dayHead.className = `weekday ${weekdayClasses[index]}`;
+        dayHead.innerText = day;
+        grid.appendChild(dayHead);
+    });
+
+    const firstDay = new Date(displayYear, displayMonth, 1).getDay();
+    const numDays = new Date(displayYear, displayMonth + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+        const blank = document.createElement('div');
+        grid.appendChild(blank);
     }
 
+    for (let day = 1; day <= numDays; day++) {
+        const currentIdx = (firstDay + day - 1) % 7;
+
+        const cell = document.createElement('div');
+        cell.className = `day-cell ${weekdayClasses[currentIdx]}`;
+
+        if (
+            displayYear === sysYear &&
+            displayMonth === sysMonth &&
+            day === sysDay
+        ) {
+            cell.classList.add('today');
+        }
+
+        const dayNum = document.createElement('div');
+        dayNum.className = 'day-num';
+        dayNum.innerText = day;
+        cell.appendChild(dayNum);
+
+        const eventContainer = document.createElement('div');
+        eventContainer.className = 'day-events';
+
+        const dateStr =
+            `${displayYear}-` +
+            `${String(displayMonth + 1).padStart(2, '0')}-` +
+            `${String(day).padStart(2, '0')}`;
+
+        // 日付をクリックしたら入力画面の日付に反映
+        cell.onclick = () => {
+            document.getElementById('form-date').value = dateStr;
+            switchPage(
+                'add',
+                document.querySelectorAll('.nav-item')[1]
+            );
+        };
+
+        const dayEvents = budgetData.filter(e => e.date === dateStr);
+
+        dayEvents.forEach(e => {
+            const tag = document.createElement('div');
+            tag.className = `event-tag tag-${e.type}`;
+
+            if (e.type === 'schedule') {
+                tag.innerText = `📅 ${e.title}`;
+                tag.title = e.title;
+            } else {
+                const amount = Number(e.amount) || 0;
+                const prefix = e.type === 'fixed-in' ? '+' : '-';
+
+                tag.innerText = `${prefix}${Math.round(amount / 1000)}k`;
+                tag.title = `${e.title}: ¥${amount.toLocaleString()}`;
+            }
+
+            tag.onclick = (event) => {
+                event.stopPropagation();
+                deleteEvent(e.id, e.title);
+            };
+
+            eventContainer.appendChild(tag);
+        });
+
+        cell.appendChild(eventContainer);
+        grid.appendChild(cell);
+    }
+}
     function calculateFinance() {
         let totalIncome = 0; let totalFixedExpense = 0; let totalFlexExpense = 0;
         let catTotals = {};
