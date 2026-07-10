@@ -1,0 +1,415 @@
+c<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>収入・支出・割り勘アプリ</title>
+  <style>
+
+    .today {
+  background: #ede9fe;
+  border: 3px solid #7c3aed;
+}
+
+.today .number {
+  background: #7c3aed;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+    body {
+      font-family: "Hiragino Sans", sans-serif;
+      background: linear-gradient(135deg, #fdf2f8, #e0f2fe, #ecfdf5);
+      padding: 20px;
+      color: #263238;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4c1d95;
+    }
+
+    .nav {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .nav button {
+      width: 180px;
+      display: inline-block;
+      margin: 6px;
+      background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+    }
+
+    .summary, .input-area, .warikan-area {
+      max-width: 520px;
+      margin: 20px auto;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 24px;
+      border-radius: 22px;
+      box-shadow: 0 10px 25px rgba(80, 80, 120, 0.18);
+    }
+
+    .summary { border-left: 8px solid #8b5cf6; }
+    .input-area { border-left: 8px solid #06b6d4; }
+    .warikan-area { border-left: 8px solid #f59e0b; }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      max-width: 950px;
+      margin: 20px auto;
+    }
+
+    .day, .date {
+      padding: 10px;
+      min-height: 90px;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .day {
+      min-height: 20px;
+      text-align: center;
+      font-weight: bold;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+
+    .date {
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 5px 12px rgba(100, 116, 139, 0.15);
+      transition: 0.2s;
+    }
+
+    .date:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 18px rgba(100, 116, 139, 0.25);
+    }
+
+    .number {
+      font-weight: bold;
+      color: #4c1d95;
+      margin-bottom: 5px;
+    }
+
+    .event {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .income {
+      background: #dcfce7;
+      color: #166534;
+      padding: 5px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .expense {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 5px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      padding: 11px;
+      box-sizing: border-box;
+      border-radius: 12px;
+      font-size: 15px;
+    }
+
+    input, textarea {
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+    }
+
+    button {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    #totalIncome { color: #15803d; font-weight: bold; }
+    #totalExpense { color: #dc2626; font-weight: bold; }
+
+    #balance {
+      color: #7c3aed;
+      background: #f3e8ff;
+      padding: 10px;
+      border-radius: 12px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>収入・支出・割り勘アプリ</h1>
+
+  <div class="nav">
+    <button onclick="showPage('calendarPage')">カレンダー</button>
+    <button onclick="showPage('warikanPage')">割り勘</button>
+  </div>
+
+  <div id="calendarPage">
+    <div class="summary">
+      <h2>今月の合計</h2>
+      <p id="totalIncome">収入：0円</p>
+      <p id="totalExpense">支出：0円</p>
+      <h3 id="balance">残り：0円</h3>
+    </div>
+
+    <div class="input-area">
+      <h2 id="selectedDate">日付を選んでください</h2>
+
+      <p>予定</p>
+      <input id="eventText" placeholder="例：バイト、遊び、支払い">
+
+      <p>収入</p>
+      <input id="income" type="number" placeholder="例：8000">
+
+      <p>支出</p>
+      <input id="expense" type="number" placeholder="例：1200">
+
+      <p>メモ</p>
+      <textarea id="memo" placeholder="メモを書く"></textarea>
+
+      <button onclick="saveEvent()">保存する</button>
+      <button onclick="deleteEvent()">削除する</button>
+    </div>
+
+   <div class="month-control">
+
+    <button class="arrow" onclick="prevMonth()">❮</button>
+
+    <h2 id="monthTitle"></h2>
+
+    <button class="arrow" onclick="nextMonth()">❯</button>
+
+</div>
+
+    <div class="calendar" id="calendar"></div>
+  </div>
+
+  <div id="warikanPage" class="hidden">
+    <div class="warikan-area">
+      <h2>割り勘計算</h2>
+
+      <p>合計金額</p>
+      <input id="warikanTotal" type="number" placeholder="例：5000">
+
+      <p>人数</p>
+      <input id="warikanPeople" type="number" placeholder="例：4">
+
+      <button onclick="calculateWarikan()">計算する</button>
+
+      <h3 id="warikanResult">1人あたり：0円</h3>
+    </div>
+  </div>
+
+  <script>
+  const calendar = document.getElementById("calendar");
+
+  let currentDate = new Date(2026, 0, 1);
+  let selectedKey = "";
+
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+
+  function showPage(pageId) {
+    document.getElementById("calendarPage").classList.add("hidden");
+    document.getElementById("warikanPage").classList.add("hidden");
+    document.getElementById(pageId).classList.remove("hidden");
+  }
+
+  function createCalendar() {
+    calendar.innerHTML = "";
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    document.getElementById("monthTitle").textContent =
+      `${year}年 ${month + 1}月`;
+
+    for (let d of days) {
+      const dayBox = document.createElement("div");
+      dayBox.className = "day";
+      dayBox.textContent = d;
+      calendar.appendChild(dayBox);
+    }
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      calendar.appendChild(document.createElement("div"));
+    }
+
+    for (let date = 1; date <= lastDate; date++) {
+      const key = `${year}-${month + 1}-${date}`;
+      const data = JSON.parse(localStorage.getItem(key));
+
+      const dateBox = document.createElement("div");
+dateBox.className = "date";
+
+const today = new Date();
+
+if (
+  year === today.getFullYear() &&
+  month === today.getMonth() &&
+  date === today.getDate()
+) {
+  dateBox.classList.add("today");
+}
+      dateBox.onclick = () => selectDate(key, year, month, date);
+
+      dateBox.innerHTML = `<div class="number">${date}</div>`;
+
+      if (data) {
+        if (data.event) {
+          dateBox.innerHTML += `<div class="event">${data.event}</div>`;
+        }
+        if (data.income) {
+          dateBox.innerHTML += `<div class="income">収入：${Number(data.income).toLocaleString()}円</div>`;
+        }
+        if (data.expense) {
+          dateBox.innerHTML += `<div class="expense">支出：${Number(data.expense).toLocaleString()}円</div>`;
+        }
+      }
+
+      calendar.appendChild(dateBox);
+    }
+
+    updateSummary(year, month);
+  }
+
+  function selectDate(key, year, month, date) {
+    selectedKey = key;
+
+    document.getElementById("selectedDate").textContent =
+      `${year}年${month + 1}月${date}日`;
+
+    const data = JSON.parse(localStorage.getItem(key));
+
+    document.getElementById("eventText").value = data ? data.event : "";
+    document.getElementById("income").value = data ? data.income : "";
+    document.getElementById("expense").value = data ? data.expense : "";
+    document.getElementById("memo").value = data ? data.memo : "";
+  }
+
+  function saveEvent() {
+    if (selectedKey === "") {
+      alert("先に日付を選んでください");
+      return;
+    }
+
+    const data = {
+      event: document.getElementById("eventText").value,
+      income: document.getElementById("income").value || 0,
+      expense: document.getElementById("expense").value || 0,
+      memo: document.getElementById("memo").value
+    };
+
+    localStorage.setItem(selectedKey, JSON.stringify(data));
+    createCalendar();
+  }
+
+  function deleteEvent() {
+    if (selectedKey === "") {
+      alert("先に日付を選んでください");
+      return;
+    }
+
+    localStorage.removeItem(selectedKey);
+
+    document.getElementById("eventText").value = "";
+    document.getElementById("income").value = "";
+    document.getElementById("expense").value = "";
+    document.getElementById("memo").value = "";
+
+    createCalendar();
+  }
+
+  function updateSummary(year, month) {
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    for (let date = 1; date <= lastDate; date++) {
+      const key = `${year}-${month + 1}-${date}`;
+      const data = JSON.parse(localStorage.getItem(key));
+
+      if (data) {
+        totalIncome += Number(data.income) || 0;
+        totalExpense += Number(data.expense) || 0;
+      }
+    }
+
+    const balance = totalIncome - totalExpense;
+
+    document.getElementById("totalIncome").textContent =
+      `収入：${totalIncome.toLocaleString()}円`;
+
+    document.getElementById("totalExpense").textContent =
+      `支出：${totalExpense.toLocaleString()}円`;
+
+    document.getElementById("balance").textContent =
+      `残り：${balance.toLocaleString()}円`;
+  }
+
+  function prevMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    selectedKey = "";
+    document.getElementById("selectedDate").textContent = "日付を選んでください";
+    createCalendar();
+  }
+
+  function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    selectedKey = "";
+    document.getElementById("selectedDate").textContent = "日付を選んでください";
+    createCalendar();
+  }
+
+  function calculateWarikan() {
+    const total = Number(document.getElementById("warikanTotal").value);
+    const people = Number(document.getElementById("warikanPeople").value);
+
+    if (total <= 0 || people <= 0) {
+      alert("合計金額と人数を入力してください");
+      return;
+    }
+
+    const result = Math.ceil(total / people);
+
+    document.getElementById("warikanResult").textContent =
+      `1人あたり：${result.toLocaleString()}円`;
+  }
+
+  createCalendar();
+</script>
+
+</body>
+</html>
