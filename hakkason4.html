@@ -656,48 +656,43 @@ window.addEventListener('DOMContentLoaded', () => {
         switchPage('calendar', document.querySelectorAll('.nav-item')[0]);
     }
 
-    function initChart() {
-        const ctx = document.getElementById('expenseChart').getContext('2d');
-        expenseChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: ['#dfba73', '#9d8df1', '#38bdf8', '#f43f5e', '#a855f7'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#f8fafc',
-                            font: { family: 'Noto Sans JP', size: 11 },
-                            padding: 15,
-                            boxWidth: 12
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#161925',
-                        titleColor: '#dfba73',
-                        bodyColor: '#f8fafc',
-                        borderColor: 'rgba(255,255,255,0.1)',
-                        borderWidth: 1,
-                        callbacks: {
-                            label: function(context) {
-                                return ` ${context.label}: ¥${context.raw.toLocaleString()}`;
-                            }
-                        }
-                    }
-                },
-                cutout: '70%'
-            }
-        });
+    function previewAndOcrImage(input) {
+        const file = input.files[0];
+        if (file) {
+            const uploadZone = document.getElementById('upload-zone');
+            const uploadText = document.getElementById('upload-text');
+            const uploadIcon = document.getElementById('upload-icon');
+            
+            uploadZone.style.borderColor = 'var(--gold-premium)';
+            uploadIcon.className = 'fa-solid fa-spinner fa-spin';
+            uploadText.innerText = 'インテリジェントAIがレシートを解析中...';
+            
+            const reader = new FileReader(); 
+            reader.onload = function(e) {
+                const imgElement = document.getElementById('photo-preview-form'); 
+                imgElement.src = e.target.result; 
+                currentBase64Image = e.target.result;
+                
+                setTimeout(() => {
+                    uploadIcon.className = 'fa-solid fa-check';
+                    uploadZone.style.borderColor = 'var(--income)';
+                    uploadText.innerHTML = '<span style="color:var(--income)">✨ レシートの解析が完了しました</span>';
+                    imgElement.style.display = 'block';
+                    
+                   
+                    const randomPick = mockReceipts[Math.floor(Math.random() * mockReceipts.length)];
+                    
+                    document.getElementById('form-title').value = randomPick.title;
+                    document.getElementById('form-amount').value = randomPick.amount;
+                    document.getElementById('form-category').value = randomPick.category;
+                    
+                    setMode('flex', document.querySelectorAll('.tab-btn')[0]);
+                }, 1500);
+            }; 
+            reader.readAsDataURL(file);
+        }
     }
+
 
     function updateExpenseChart(catTotals) {
         if (!expenseChart) return;
