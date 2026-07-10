@@ -142,6 +142,15 @@
         .tag-fixed-out { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
         .tag-flex { background: rgba(244, 63, 94, 0.15); color: var(--flex); border: 1px solid rgba(244, 63, 14, 0.3); }
         .day-photo-preview { width: 100%; height: 24px; object-fit: cover; border-radius: 4px; margin-top: 2px; }
+        .tag-schedule {
+
+    background: rgba(56, 189, 248, 0.15);
+
+    color: #38bdf8;
+
+    border: 1px solid rgba(56, 189, 248, 0.35);
+
+}
 
         /* フォーム */
         .form-wrapper { max-width: 600px; margin: 0 auto; }
@@ -284,9 +293,10 @@
         <div class="panel">
             <h2 style="font-size: 1.2rem; margin-bottom: 20px;"><i class="fa-solid fa-pen-to-square" style="color: var(--gold-premium);"></i> 取引データの記録</h2>
             <div class="entry-tabs">
-                <button class="tab-btn active" onclick="setMode('flex', this)">変動費</button>
-                <button class="tab-btn" onclick="setMode('fixed-in', this)">収入</button>
-                <button class="tab-btn" onclick="setMode('fixed-out', this)">固定費</button>
+    <button class="tab-btn active" onclick="setMode('flex', this)">変動費</button>
+    <button class="tab-btn" onclick="setMode('fixed-in', this)">収入</button>
+    <button class="tab-btn" onclick="setMode('fixed-out', this)">固定費</button>
+    <button class="tab-btn" onclick="setMode('schedule', this)">予定</button>
             </div>
             
             <form id="main-form">
@@ -303,7 +313,10 @@
                     </select>
                 </div>
                 <div><label id="label-title">摘要・メモ</label><input type="text" id="form-title" placeholder="例: クライアント会食" required></div>
-                <div><label>金額 (¥)</label><input type="number" id="form-amount" placeholder="0" min="0" required></div>
+                <div id="amount-wrapper">
+    <label>金額 (¥)</label>
+    <input type="number" id="form-amount" placeholder="0" min="0" required>
+                </div>
                 <button type="submit" class="btn-main" id="btn-submit">この内容で登録する</button>
             </form>
         </div>
@@ -512,19 +525,50 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function setMode(mode, btn) {
-        currentMode = mode;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const labelTitle = document.getElementById('label-title');
-        const catWrapper = document.getElementById('category-selector-wrapper');
-        
-        if (mode === 'flex') {
-            labelTitle.innerText = "摘要・メモ"; catWrapper.style.display = 'block';
-        } else {
-            labelTitle.innerText = mode === 'fixed-in' ? "収入の名称" : "固定費の名称";
-            catWrapper.style.display = 'none';
-        }
+    currentMode = mode;
+
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+    });
+
+    btn.classList.add('active');
+
+    const labelTitle = document.getElementById('label-title');
+    const titleInput = document.getElementById('form-title');
+    const catWrapper = document.getElementById('category-selector-wrapper');
+    const amountWrapper = document.getElementById('amount-wrapper');
+    const amountInput = document.getElementById('form-amount');
+
+    if (mode === 'flex') {
+        labelTitle.innerText = '摘要・メモ';
+        titleInput.placeholder = '例: 友達との食事';
+        catWrapper.style.display = 'block';
+        amountWrapper.style.display = 'block';
+        amountInput.required = true;
+
+    } else if (mode === 'fixed-in') {
+        labelTitle.innerText = '収入の名称';
+        titleInput.placeholder = '例: 給料';
+        catWrapper.style.display = 'none';
+        amountWrapper.style.display = 'block';
+        amountInput.required = true;
+
+    } else if (mode === 'fixed-out') {
+        labelTitle.innerText = '固定費の名称';
+        titleInput.placeholder = '例: 家賃';
+        catWrapper.style.display = 'none';
+        amountWrapper.style.display = 'block';
+        amountInput.required = true;
+
+    } else if (mode === 'schedule') {
+        labelTitle.innerText = '予定名・メモ';
+        titleInput.placeholder = '例: 友達と遊びに行く';
+        catWrapper.style.display = 'none';
+        amountWrapper.style.display = 'none';
+        amountInput.required = false;
+        amountInput.value = '';
     }
+}
 
     function changeMonth(offset) {
         displayMonth += offset;
