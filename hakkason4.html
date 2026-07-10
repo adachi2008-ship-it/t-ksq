@@ -171,6 +171,10 @@
         .game-tab-btn.active { background: rgba(255,255,255,0.08); color: var(--gold-premium); }
         .split-res-box { display: none; margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 16px; border: 1px solid var(--panel-border); }
         .result-list-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.95rem; }
+ 　　　　/* アプリ管理・削除用の追加スタイル */
+        .launcher-btn { position: relative; }
+        .delete-app-btn { position: absolute; top: -5px; right: -5px; background: var(--flex); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: none; }
+        .managing .delete-app-btn { display: flex; align-items: center; justify-content: center; }   
     </style>
 </head>
 <body>
@@ -187,25 +191,23 @@
         <i class="fa-solid fa-shield-halved" style="font-size: 2.5rem; color: rgba(255,255,255,0.05);"></i>
     </div>
 
-    <!-- 🔗 クイックアプリランチャーパネル（新設） -->
-    <div class="panel" style="padding: 18px; margin-bottom: 24px;">
-        <h2 style="font-size: 0.9rem; margin-bottom: 12px;"><i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--gold-premium);"></i> クイックアプリ起動</h2>
-        <div class="app-launcher-grid">
-            <a href="paypay://" class="launcher-btn">
-                <i class="fa-solid fa-p" style="color: #ff0055;"></i><span>PayPay</span>
-            </a>
-            <a href="rakutenpay://" class="launcher-btn">
-                <i class="fa-solid fa-r" style="color: #bf0000;"></i><span>楽天ペイ</span>
-            </a>
-            <a href="dbar://" class="launcher-btn">
-                <i class="fa-solid fa-d" style="color: #e60012;"></i><span>d払い</span>
-            </a>
-            <a href="mercari://" class="launcher-btn">
-                <i class="fa-solid fa-m" style="color: #3388ff;"></i><span>メルペイ</span>
-            </a>
-        </div>
-    </div>
+    <div class="panel" id="launcher-panel" style="padding: 18px; margin-bottom: 24px; position: relative;">
+    
+    <h2 style="font-size: 0.9rem; margin-bottom: 12px; display: inline-flex; align-items: flex-start; gap: 4px; position: relative; padding-right: 24px;">
+        <span><i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--gold-premium);"></i> クイックアプリ起動</span>
+        <button onclick="toggleAppManagement()" style="position: absolute; top: -2px; right: 0; font-size: 0.65rem; background: none; border: 1px solid var(--panel-border); color: var(--text-muted); padding: 1px 4px; border-radius: 4px; cursor: pointer; transition: var(--transition-smooth);">⚙️</button>
+    </h2>
 
+    <div class="app-launcher-grid" id="app-grid">
+        </div>
+
+    <div id="add-app-form" style="display: none; margin-top: 12px; padding: 8px; background: rgba(0,0,0,0.4); border: 1px dashed rgba(223, 186, 115, 0.3); border-radius: 10px;">
+        <input type="text" id="app-search-input" placeholder="アプリ名で検索して追加（例: Vポイント、au PAY）" oninput="searchPresetApps()" style="width: 100%; padding: 8px 12px; font-size: 0.8rem; background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); color: #fff; border-radius: 8px; margin: 0 0 8px 0;">
+        
+        <div id="search-results-pool" style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto; padding: 2px;">
+            </div>
+    </div>
+</div>
     <div class="calendar-container">
         
         <!-- 左側カラム: カレンダー本体 & 下部に支出グラフ -->
@@ -365,6 +367,123 @@
     // 2026年マスタデータ
     const defaultData = [
     ];
+    // ==========================================
+// 🔍 クイックアプリ起動：内蔵データベース検索型ロジック
+// ==========================================
+
+// 🛠️ 【ここにデータを追加していく形にしました！】
+const PRESET_APP_DATABASE = [
+    // --- 大手決済系 ---
+    { name: 'PayPay', url: 'paypay://', icon: 'fa-solid fa-p', color: '#ff0055', keywords: 'ペイペイ ぺいぺい paypay' },
+    { name: '楽天ペイ', url: 'rakutenpay://', icon: 'fa-solid fa-r', color: '#bf0000', keywords: 'らくてん 楽天 pay rpay' },
+    { name: 'd払い', url: 'dbar://', icon: 'fa-solid fa-d', color: '#e60012', keywords: 'ｄ払い ドコモ どこも dbar' },
+    { name: 'メルペイ', url: 'mercari://', icon: 'fa-solid fa-m', color: '#3388ff', keywords: 'めるぺい メルカリ mercari' },
+    { name: 'au PAY', url: 'auonepay://', icon: 'fa-solid fa-a', color: '#f7931e', keywords: 'エーユー auペイ aupay' },
+    { name: 'LINE Pay', url: 'linepay://', icon: 'fa-solid fa-l', color: '#06c755', keywords: 'ライン ラインペイ line' },
+    { name: 'AEON Pay', url: 'aeonpay://', icon: 'fa-solid fa-i', color: '#ae167d', keywords: 'イオン いおん aeon' },
+    { name: 'FamiPay', url: 'famipay://', icon: 'fa-solid fa-f', color: '#00a040', keywords: 'ファミペイ ふぁみぺい fami' },
+    
+    // --- ポイント系 ---
+    { name: 'Vポイント', url: 'tsite://', icon: '', color: '', keywords: 'ブイポイント tポイント tカード vpoint tsite' },
+    { name: 'Ponta', url: 'ponta://', icon: '', color: '', keywords: 'ぽんた ポンタ pontaカード' },
+    { name: '楽天ポイント', url: 'rakutenpointcard://', icon: '', color: '', keywords: 'らくてん 楽天ポイントカード rpoint' },
+    { name: 'dポイント', url: 'dpointclub://', icon: '', color: '', keywords: 'ｄポイント ドコモ dpoint' },
+    { name: 'WAON', url: 'waon://', icon: '', color: '', keywords: 'わおん ワオン 電子マネー' },
+    { name: 'nanaco', url: 'nanaco://', icon: '', color: '', keywords: 'ななこ ナナコ セブン' }
+];
+
+// 初期状態で表示しておくデフォルトの4つ
+const defaultLauncherApps = [
+    { name: 'PayPay', url: 'paypay://', icon: 'fa-solid fa-p', color: '#ff0055' },
+    { name: '楽天ペイ', url: 'rakutenpay://', icon: 'fa-solid fa-r', color: '#bf0000' },
+    { name: 'd払い', url: 'dbar://', icon: 'fa-solid fa-d', color: '#e60012' },
+    { name: 'メルペイ', url: 'mercari://', icon: 'fa-solid fa-m', color: '#3388ff' }
+];
+
+let myApps = JSON.parse(localStorage.getItem('my_custom_apps')) || defaultLauncherApps;
+
+function renderApps() {
+    const grid = document.getElementById('app-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    myApps.forEach((app, idx) => {
+        const a = document.createElement('a');
+        a.href = app.url;
+        a.className = 'launcher-btn';
+        
+        let iconHtml = '';
+        if (app.icon && app.icon !== '') {
+            iconHtml = `<i class="${app.icon}" style="color: ${app.color || 'var(--gold-premium)'}"></i>`;
+        } else {
+            // ポイント系などアイコン未指定のものは、名前の頭文字から自動エンブレムを生成
+            const firstLetter = app.name ? app.name.charAt(0).toUpperCase() : '★';
+            iconHtml = `<span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: rgba(223, 186, 115, 0.1); border: 1px solid var(--gold-premium); color: var(--gold-premium); border-radius: 50%; font-size: 0.7rem; font-weight: 700; margin-bottom: 2px; box-shadow: 0 0 6px rgba(223, 186, 115, 0.2);">${firstLetter}</span>`;
+        }
+        
+        a.innerHTML = `${iconHtml}<span>${app.name}</span>
+                       <button class="delete-app-btn" onclick="event.preventDefault(); deleteApp(${idx})">×</button>`;
+        grid.appendChild(a);
+    });
+    localStorage.setItem('my_custom_apps', JSON.stringify(myApps));
+}
+
+function toggleAppManagement() {
+    const panel = document.getElementById('launcher-panel');
+    const form = document.getElementById('add-app-form');
+    panel.classList.toggle('managing');
+    
+    if (panel.classList.contains('managing')) {
+        form.style.display = 'block';
+        searchPresetApps();
+    } else {
+        form.style.display = 'none';
+    }
+}
+
+function searchPresetApps() {
+    const query = document.getElementById('app-search-input').value.toLowerCase();
+    const pool = document.getElementById('search-results-pool');
+    pool.innerHTML = '';
+
+    const filtered = PRESET_APP_DATABASE.filter(app => {
+        const isAlreadyAdded = myApps.some(myApp => myApp.name === app.name);
+        if (isAlreadyAdded) return false;
+        return app.name.toLowerCase().includes(query) || app.keywords.includes(query);
+    });
+
+    if (filtered.length === 0) {
+        pool.innerHTML = '<span style="font-size:0.7rem; color:var(--text-muted); padding:4px;">一致するアプリがありません</span>';
+        return;
+    }
+
+    filtered.forEach(app => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.style.cssText = 'background:rgba(255,255,255,0.06); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.7rem; padding:4px 8px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:var(--transition-smooth);';
+        btn.innerHTML = `<span style="color:var(--gold-premium);">＋</span> ${app.name}`;
+        
+        btn.onclick = () => {
+            myApps.push({ name: app.name, url: app.url, icon: app.icon, color: app.color });
+            renderApps();
+            searchPresetApps();
+        };
+        pool.appendChild(btn);
+    });
+}
+
+function deleteApp(idx) {
+    myApps.splice(idx, 1);
+    renderApps();
+    if (document.getElementById('launcher-panel').classList.contains('managing')) {
+        searchPresetApps();
+    }
+}
+
+// ページ読み込み完了時にランチャーを初期化
+window.addEventListener('DOMContentLoaded', () => {
+    renderApps();
+});
 
     let budgetData = JSON.parse(localStorage.getItem('premium_budget_data')) || defaultData;
     const sysYear = 2026; const sysMonth = 6; const sysDay = 8;
