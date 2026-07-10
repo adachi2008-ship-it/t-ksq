@@ -589,8 +589,6 @@ window.addEventListener('DOMContentLoaded', () => {
             const nextId = budgetData.length > 0 ? Math.max(...budgetData.map(item => item.id || 0)) + 1 : 1;
             const d1 = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-05`;
             const d2 = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-15`;
-            budgetData.push({ id: nextId, date: d1, title: 'レジデンス家賃', amount: 420000, type: 'fixed-out', category: '固定費', photo: null });
-            budgetData.push({ id: nextId + 1, date: d2, title: '役員報酬', amount: 950000, type: 'fixed-in', category: '収入', photo: null });
             saveToLocalStorage(); renderCalendar(); calculateFinance();
         }
     }
