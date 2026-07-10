@@ -78,7 +78,7 @@
         /* 👑 VIP総資産ボード */
         .asset-card {
             background: linear-gradient(135deg, #1a1c23 0%, #0d0e12 100%);
-            border: 1px solid rgba(223, 186, 115, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;
+            border: 1px solid rgba(223, 186, 115, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 16px;
             box-shadow: var(--panel-shadow); display: flex; justify-content: space-between; align-items: center;
         }
         .asset-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; }
@@ -86,6 +86,17 @@
             font-size: 2.4rem; font-weight: 700; margin-top: 4px; 
             color: var(--gold-premium);
         }
+
+        /* 🔗 アプリランチャー（新設） */
+        .app-launcher-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .launcher-btn { 
+            display: flex; flex-direction: column; align-items: center; gap: 6px; 
+            background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); 
+            padding: 12px 4px; border-radius: 14px; text-decoration: none; color: var(--text-main); 
+            font-size: 0.75rem; font-weight: 500; transition: var(--transition-smooth);
+        }
+        .launcher-btn:hover { border-color: var(--gold-premium); background: rgba(255,255,255,0.04); }
+        .launcher-btn i { font-size: 1.3rem; }
 
         /* 柔軟な2カラムレイアウト */
         .calendar-container { display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
@@ -176,6 +187,25 @@
         <i class="fa-solid fa-shield-halved" style="font-size: 2.5rem; color: rgba(255,255,255,0.05);"></i>
     </div>
 
+    <!-- 🔗 クイックアプリランチャーパネル（新設） -->
+    <div class="panel" style="padding: 18px; margin-bottom: 24px;">
+        <h2 style="font-size: 0.9rem; margin-bottom: 12px;"><i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--gold-premium);"></i> クイックアプリ起動</h2>
+        <div class="app-launcher-grid">
+            <a href="paypay://" class="launcher-btn">
+                <i class="fa-solid fa-p" style="color: #ff0055;"></i><span>PayPay</span>
+            </a>
+            <a href="rakutenpay://" class="launcher-btn">
+                <i class="fa-solid fa-r" style="color: #bf0000;"></i><span>楽天ペイ</span>
+            </a>
+            <a href="dbar://" class="launcher-btn">
+                <i class="fa-solid fa-d" style="color: #e60012;"></i><span>d払い</span>
+            </a>
+            <a href="mercari://" class="launcher-btn">
+                <i class="fa-solid fa-m" style="color: #3388ff;"></i><span>メルペイ</span>
+            </a>
+        </div>
+    </div>
+
     <div class="calendar-container">
         
         <!-- 左側カラム: カレンダー本体 & 下部に支出グラフ -->
@@ -196,7 +226,7 @@
                 <div class="calendar-grid" id="calendar-grid"></div>
             </div>
 
-            <!-- 📊 支出分析グラフパネル（カレンダーの下に新設） -->
+            <!-- 📊 支出分析グラフパネル -->
             <div class="panel">
                 <h2><i class="fa-solid fa-chart-pie" style="color: var(--gold-premium);"></i> 今月の支出内訳（資産分析）</h2>
                 <div style="position: relative; max-width: 320px; margin: 0 auto; height: 260px;">
@@ -261,7 +291,6 @@
                 <div><label>日付</label><input type="date" id="form-date" required></div>
                 <div>
                     <label>スマートスキャン（レシート読み取り）</label>
-                    <!-- 📸 高機能化した読み取りゾーン -->
                     <div class="camera-upload-zone" id="upload-zone" onclick="document.getElementById('form-file').click()">
                         <i class="fa-solid fa-camera" id="upload-icon"></i>
                         <span id="upload-text">タップしてレシートをスキャン（自動入力）</span>
@@ -347,11 +376,11 @@
     const weekdayClasses = ['sun', '', '', '', '', '', 'sat'];
     let currentMode = 'flex'; let currentBase64Image = null;
     let activeGameMode = 'normal'; let myCalculatedAmount = 0; 
-    let expenseChart = null; // グラフインスタンス用
+    let expenseChart = null;
 
     function init() { 
         setFormDateToDisplayMonth(); 
-        initChart(); // グラフ初期化
+        initChart(); 
         renderCalendar(); 
         calculateFinance(); 
     }
@@ -475,7 +504,6 @@
         switchPage('calendar', document.querySelectorAll('.nav-item')[0]);
     }
 
-    /* 📸 アップグレード：レシートスマートスキャン（疑似AI解析機能） */
     function previewAndOcrImage(input) {
         const file = input.files[0];
         if (file) {
@@ -483,7 +511,6 @@
             const uploadText = document.getElementById('upload-text');
             const uploadIcon = document.getElementById('upload-icon');
             
-            // ラグジュアリーな解析ローディング演出
             uploadZone.style.borderColor = 'var(--gold-premium)';
             uploadIcon.className = 'fa-solid fa-spinner fa-spin';
             uploadText.innerText = 'インテリジェントAIがレシートを解析中...';
@@ -494,14 +521,12 @@
                 imgElement.src = e.target.result; 
                 currentBase64Image = e.target.result;
                 
-                // 1.5秒後にスマート自動補完
                 setTimeout(() => {
                     uploadIcon.className = 'fa-solid fa-check';
                     uploadZone.style.borderColor = 'var(--income)';
                     uploadText.innerHTML = '<span style="color:var(--income)">✨ レシートの解析が完了しました</span>';
                     imgElement.style.display = 'block';
                     
-                    // リアリティのあるダミーデータのセット（ランダム抽出）
                     const mockReceipts = [
                         { title: '成城石井 六本木ヒルズ店', amount: 5840, category: '食費・交際' },
                         { title: '東京ミッドタウン 駐車場', amount: 2200, category: '交通費' },
@@ -514,7 +539,6 @@
                     document.getElementById('form-amount').value = randomPick.amount;
                     document.getElementById('form-category').value = randomPick.category;
                     
-                    // 自動的に「変動費」タブにセット
                     setMode('flex', document.querySelectorAll('.tab-btn')[0]);
                 }, 1500);
             }; 
@@ -522,7 +546,6 @@
         }
     }
 
-    /* 📊 新設：上質な円グラフの初期化 */
     function initChart() {
         const ctx = document.getElementById('expenseChart').getContext('2d');
         expenseChart = new Chart(ctx, {
@@ -566,7 +589,6 @@
         });
     }
 
-    /* 📊 グラフデータの更新処理 */
     function updateExpenseChart(catTotals) {
         if (!expenseChart) return;
         const labels = Object.keys(catTotals);
@@ -639,7 +661,6 @@
         document.getElementById('budget-percent').innerText = `${percent}%`;
         document.getElementById('budget-progress').style.width = `${percent}%`;
 
-        // AIインサイト
         const aiText = document.getElementById('ai-advisor-text');
         if (totalExpense === 0) {
             aiText.innerText = "今月の支出はまだありません。非常にクリーンな状態です。";
@@ -668,7 +689,6 @@
         }
         if (!hasFlexExpense) catListContainer.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding: 10px 0;">今月の変動費データはありません。</p>';
 
-        // 📊 円グラフのデータを反映・連動
         updateExpenseChart(catTotals);
     }
 
@@ -679,7 +699,6 @@
         budgetData.push({ id: newId, date, title, amount, type: currentMode, category: category, photo: currentBase64Image });
         saveToLocalStorage(); renderCalendar(); calculateFinance();
         
-        // フォーム及びスキャンゾーンのクリーンアップ
         document.getElementById('form-title').value = ''; document.getElementById('form-amount').value = ''; document.getElementById('form-file').value = '';
         document.getElementById('photo-preview-form').style.display = 'none'; currentBase64Image = null;
         document.getElementById('upload-icon').className = 'fa-solid fa-camera';
